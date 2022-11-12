@@ -1,25 +1,17 @@
-const express = require('express');
+import express from 'express';
+import dotenv from 'dotenv';
+import routerProductos from './Routers/productos.js';
+
+dotenv.config();
+
 const server = express();
-const Contenedor = require('./Contenedor');
 
-const contenedor = new Contenedor('./productos.txt');
+server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
+server.use(express.static('public'));
+server.use('/api/productos', routerProductos);
 
-const PORT = 8080;
-
-server.get('/productos', async (req, res) => {
-    const data = await contenedor.getAll();
-    res.send({
-        Productos: data
-    })
-})
-
-server.get('/productoRandom', async (req, res) => {
-    const data = await contenedor.getAll();
-    const cantidad = data.length;
-    const id = Math.floor(Math.random() * cantidad) + 1;
-    const productoRandom = await contenedor.getById(id);
-    res.send({ProductoRandom: productoRandom});
-})
+const PORT = 8080 || process.env.PORT;
 
 server.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
 

@@ -1,13 +1,10 @@
-const fs = require( 'fs' );
-
-// Implementar programa que contenga una clase llamada Contenedor que reciba el nombre del archivo con el que va a trabajar e implemente los siguientes métodos:
+import fs from 'fs';
 
 class Contenedor {
     constructor ( path ) {
         this.path = path;
     }
 
-//  save(Object): Number - Recibe un objeto, lo guarda en el archivo, devuelve el id asignado.
     save = async ( producto ) => {
         try {
             const data = await fs.promises.readFile( this.path, 'utf-8' );
@@ -24,7 +21,6 @@ class Contenedor {
         }
     }
 
-    // getById(Number): Object - Recibe un id y devuelve el objeto con ese id, o null si no está.
     getById = async ( id ) => {
         try {
             const data = await fs.promises.readFile( this.path, 'utf-8' );
@@ -38,12 +34,10 @@ class Contenedor {
         }
     }
 
-    // getAll(): Object[] - Devuelve un array con los objetos presentes en el archivo.
     getAll = async () => {
         try {
             const data = await fs.promises.readFile( this.path, 'utf-8' );
             const productos = JSON.parse( data );
-            // console.log('Productos: ', productos)
             return productos;
         } catch ( error ) {
             console.error( error );
@@ -51,7 +45,23 @@ class Contenedor {
         }
     }
 
-    // deleteById(Number): void - Elimina del archivo el objeto con el id buscado.
+    updateById = async (id, producto) => {
+        try {
+            const data = await fs.promises.readFile( this.path, 'utf-8' );
+            const productoUpdated = { id, ...producto };
+            const productos = JSON.parse( data );
+            const productosFiltrados = productos.filter(p => p.id != id);
+            const nuevosProductos = [ ...productosFiltrados, productoUpdated ];
+            nuevosProductos.sort(function(a, b) { 
+                return a.id - b.id  ||  a.name.localeCompare(b.name);
+            });
+            await fs.promises.writeFile( this.path, JSON.stringify( nuevosProductos, null, 2 ) );
+        } catch (error) {
+            console.error( error );
+            console.log('Hubo un error en la ejecución');
+        }
+    }
+
     deleteById = async ( id ) => {
         try {
             const data = await fs.promises.readFile( this.path, 'utf-8' );
@@ -64,7 +74,6 @@ class Contenedor {
         }
     }
     
-    // deleteAll(): void - Elimina todos los objetos presentes en el archivo.
     deleteAll = async () => {
         try {
             await fs.promises.writeFile(this.path, '[]');
@@ -75,32 +84,4 @@ class Contenedor {
     }
 }
 
-module.exports = Contenedor;
-
-// const producto1 = {
-//     title: 'Teclado Mecanico',
-//     price: 12000,
-//     thumbnail: 'aaaaaaaaaaaa'
-// }
-// const producto2 = {
-//     title: 'Monitor widescreen',
-//     price: 35000,
-//     thumbnail: 'bbbbbbbbbbbb'
-// }
-// const producto3 = {
-//     title: 'Mouse Bluetooth',
-//     price: 13500,
-//     thumbnail: 'cccccccc'
-// }
-
-// const contenedor = new Contenedor('./productos.txt');
-
-// contenedor.save(producto1);
-
-// contenedor.getById(2);
-
-//  contenedor.getAll()
-
-// contenedor.deleteById( 2 );
-
-// contenedor.deleteAll();
+export default Contenedor;
