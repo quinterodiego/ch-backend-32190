@@ -1,5 +1,4 @@
-import fs from 'fs';
-
+const fs =require('fs');
 class Contenedor {
     constructor ( path ) {
         this.path = path;
@@ -9,7 +8,8 @@ class Contenedor {
         try {
             const data = await fs.promises.readFile( this.path, 'utf-8' );
             const productos = JSON.parse( data );
-            const id = productos.length + 1;
+            const IdsProductos = productos.map(p => p.id);
+            const id = Math.max(...IdsProductos) + 1;
             const nuevoProducto = { ...producto, id };
             productos.push( nuevoProducto );
             await fs.promises.writeFile( this.path, JSON.stringify( productos, null, 2 ));
@@ -38,25 +38,9 @@ class Contenedor {
         try {
             const data = await fs.promises.readFile( this.path, 'utf-8' );
             const productos = JSON.parse( data );
+            // console.log('Productos: ', productos)
             return productos;
         } catch ( error ) {
-            console.error( error );
-            console.log('Hubo un error en la ejecución');
-        }
-    }
-
-    updateById = async (id, producto) => {
-        try {
-            const data = await fs.promises.readFile( this.path, 'utf-8' );
-            const productoUpdated = { id, ...producto };
-            const productos = JSON.parse( data );
-            const productosFiltrados = productos.filter(p => p.id != id);
-            const nuevosProductos = [ ...productosFiltrados, productoUpdated ];
-            nuevosProductos.sort(function(a, b) { 
-                return a.id - b.id  ||  a.name.localeCompare(b.name);
-            });
-            await fs.promises.writeFile( this.path, JSON.stringify( nuevosProductos, null, 2 ) );
-        } catch (error) {
             console.error( error );
             console.log('Hubo un error en la ejecución');
         }
@@ -84,4 +68,4 @@ class Contenedor {
     }
 }
 
-export default Contenedor;
+module.exports = Contenedor;
