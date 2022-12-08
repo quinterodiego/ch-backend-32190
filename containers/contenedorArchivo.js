@@ -1,4 +1,6 @@
-const fs =require('fs');
+import fs from 'fs';
+import moment from 'moment';
+
 class Contenedor {
     constructor ( path ) {
         this.path = path;
@@ -15,7 +17,9 @@ class Contenedor {
             } else {
                 id = 1;
             }
-            const nuevoProducto = { ...producto, id };
+            const date = new Date();
+            const timestamp = moment(date).format('DD/MM/YYYY HH:mm:ss');
+            const nuevoProducto = { ...producto, id, timestamp };
             productos.push( nuevoProducto );
             await fs.promises.writeFile( this.path, JSON.stringify( productos, null, 2 ));
             console.log(`ID: ${id}`);
@@ -31,7 +35,11 @@ class Contenedor {
             const data = await fs.promises.readFile( this.path, 'utf-8' );
             const productos = JSON.parse( data );
             const productoBuscado = productos.filter( p => p.id == id);
-            return productoBuscado;
+            if (productoBuscado.length > 0) {
+                return productoBuscado 
+            } else {
+                return null
+            }
         }
         catch ( error ) {
             console.error( error );
@@ -43,7 +51,6 @@ class Contenedor {
         try {
             const data = await fs.promises.readFile( this.path, 'utf-8' );
             const productos = JSON.parse( data );
-            // console.log('Productos: ', productos)
             return productos;
         } catch ( error ) {
             console.error( error );
@@ -71,6 +78,29 @@ class Contenedor {
             console.log('Hubo un error en la ejecución');
         }
     }
+
+    updateById = async (id, product) => {
+        try {
+            const data = await fs.promises.readFile( this.path, 'utf-8' );
+            let productos = JSON.parse( data );
+            productos = productos.filter( p => p.id != id);
+            product.id = parseInt(id);
+            productos.push(product);
+            productos.sort(function (a, b) {
+                if (a.id > b.id) {
+                    return 1;
+                }
+                if (a.id < b.id) {
+                    return -1;
+                }
+                return 0;
+            });
+            await fs.promises.writeFile( this.path, JSON.stringify(productos, null, 2));
+        } catch (error) {
+            console.error( error );
+            console.log('Hubo un error en la ejecución');
+        }
+    }
 }
 
-module.exports = Contenedor;
+export default Contenedor;

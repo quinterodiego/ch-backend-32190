@@ -1,23 +1,22 @@
-const express = require('express');
-const Contenedor = require('../Contenedor.js');
-const contenedor = new Contenedor('./productos.txt');
+import express from 'express';
+import Contenedor from '../containers/contenedorProducto.js';
+const contenedor = new Contenedor('./db/productos.json');
+import isAdmin from '../middlewares/isAdmin.js';
 
 const {Router} = express;
 
 const routerProductos = Router();
 
-routerProductos.get('/', async (req, res) => {
-    const data = await contenedor.getAll();
-    res.send({
-        Productos: data
-    })
-})
-
-routerProductos.get('/:id', async (req, res) => {
+routerProductos.get('/:id?', isAdmin, async (req, res) => {
     const id = req.params.id;
-    const producto = await contenedor.getById(id);
-    (producto.length>0) ? res.send({Producto: producto}) : res.send({ error : 'producto no encontrado' })
-})
+    if (id) {
+        const producto = await contenedor.getById(id);
+        (producto) ? res.send({Producto: producto}) : res.send({ error : 'Producto no encontrado' });
+    } else {
+        const productos = await contenedor.getAll();
+        res.send(productos);
+    }
+});
 
 routerProductos.post('/', async (req, res) => {
     const producto = req.body;
@@ -25,7 +24,16 @@ routerProductos.post('/', async (req, res) => {
     res.send({
         message: 'Producto agregado'
     })
-})
+});
+
+routerProductos.put('/:id', async (req, res) => {
+    const id = req.params.id;
+    const product = req.body;
+    await contenedor.updateById(id, product);
+    res.send({
+        message: 'Producto actualizado'
+    })
+});
 
 routerProductos.delete('/:id', async (req, res) => {
     const id = req.params.id;
@@ -33,6 +41,7 @@ routerProductos.delete('/:id', async (req, res) => {
     res.send({
         message: 'Producto borrado'
     })
-})
+});
 
-module.exports = routerProductos;
+
+export default routerProductos;
